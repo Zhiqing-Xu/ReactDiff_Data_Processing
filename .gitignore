@@ -6,3 +6,13 @@ Processed_Dataset/U00_UniRef50_Sequences.fasta
 _DATABASE_uniref50/consensus.fasta 
 _DATABASE_uniref50/lengths_and_offsets.npz 
 _DATABASE_uniref50/splits.json 
+Processed_Dataset/clustered.fasta 
+Processed_Dataset/clustered.fasta.clstr 
+Processed_Dataset/U00A_UR50_Sequences.fasta 
+Processed_Dataset/U00B_Preprocessed_Dataset.csv 
+Processed_Dataset/U00B_Processed_Dataset.csv 
+Processed_Dataset/U02_Processed_SwissProt_Dataset_train.csv 
+recyclinbin/combined.fasta 
+recyclinbin/U00b_Processed_Dataset.csv 
+recyclinbin/U00_Processed_Dataset.csv 
+recyclinbin/U00_UniRef50_Sequences.fasta 
