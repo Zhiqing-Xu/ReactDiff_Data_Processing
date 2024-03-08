@@ -101,8 +101,9 @@ all_reaction_set_list = list(set(all_reaction_list))
 print("Number of unique reactions: ", len(all_reaction_set_list))
 
 
+# Get mapped_reaction
+reaction_to_mapped_reaction_dict_path = output_folder / (Step_code + "reaction_to_mapped_reaction_dict.p")
 
-reaction_to_mapped_reaction_dict_path = output_folder / "U02_reaction_to_mapped_reaction_dict.p"
 
 if path.exists(reaction_to_mapped_reaction_dict_path):
     reaction_to_mapped_reaction_dict = pickle.load(open(reaction_to_mapped_reaction_dict_path, "rb"))
@@ -159,18 +160,25 @@ SP_seqs_similar_to_UR50_split_dict = pd.read_pickle(SwissProt_split_dict_file)
 
 
 # Extract the sequence IDs dissimilar to UniRef50
-SP_seqs_dissimilar_to_UR50_id = SP_seqs_similar_to_UR50_split_dict["SP_seqs_dissimilar_to_UR50"]
-
-# Extract the sequences dissimilar to UniRef50
-SP_seqs_dissimilar_to_UR50 = [SwissProt_dict[seq_id.split(">")[1]] for seq_id in SP_seqs_dissimilar_to_UR50_id]
-
+SP_seqs_dissimilar_to_UR50_clstr = SP_seqs_similar_to_UR50_split_dict["all_swissprot_clusters"]
+print("SP_seqs_dissimilar_to_UR50_clstr      : " , SP_seqs_dissimilar_to_UR50_clstr[:3]  )
+print("len(SP_seqs_dissimilar_to_UR50_clstr) : " , len(SP_seqs_dissimilar_to_UR50_clstr) )
 
 # Randomly select 10K from the sequences dissimilar to UniRef50 using shuffle
 import random
 random.seed(42)
-random.shuffle(SP_seqs_dissimilar_to_UR50)
-SP_seqs_dissimilar_to_UR50_valid_set = SP_seqs_dissimilar_to_UR50 [       : 10000 ]
-SP_seqs_dissimilar_to_UR50_test_set  = SP_seqs_dissimilar_to_UR50 [ 10000 : 20000 ]
+random.shuffle(SP_seqs_dissimilar_to_UR50_clstr)
+
+num_clstr = len(SP_seqs_dissimilar_to_UR50_clstr)
+clstr_for_valid_set = SP_seqs_dissimilar_to_UR50_clstr[                : (num_clstr // 6)     ] # values here adjust the number of datapoints in valid set.
+clstr_for_test_set  = SP_seqs_dissimilar_to_UR50_clstr[ num_clstr // 6 : (num_clstr // 6) * 2 ] # values here adjust the number of datapoints in test  set.
+
+SP_id_seqs_dissimilar_to_UR50_valid_set = [seq_id for clstr in clstr_for_valid_set for seq_id in clstr]
+SP_id_seqs_dissimilar_to_UR50_test_set  = [seq_id for clstr in clstr_for_test_set  for seq_id in clstr]
+
+# Extract the sequences dissimilar to UniRef50
+SP_seqs_dissimilar_to_UR50_valid_set = [SwissProt_dict[seq_id.split(">")[1]] for seq_id in SP_id_seqs_dissimilar_to_UR50_valid_set]
+SP_seqs_dissimilar_to_UR50_test_set  = [SwissProt_dict[seq_id.split(">")[1]] for seq_id in SP_id_seqs_dissimilar_to_UR50_test_set ]
 
 
 # Now, split the dataframe into three sets: train, validation, and test, based on 
@@ -217,9 +225,9 @@ test_df  = test_df.reset_index (drop = True)
 
 
 # Save to CSV files
-train_df.drop(columns=['Category']).to_csv(output_folder / "U02_Processed_SwissProt_Dataset_train.csv")
-valid_df.drop(columns=['Category']).to_csv(output_folder / "U02_Processed_SwissProt_Dataset_valid.csv")
-test_df .drop(columns=['Category']).to_csv(output_folder / "U02_Processed_SwissProt_Dataset_test.csv" )
+train_df.drop(columns=['Category']).rename(columns={"Sequence": "sequences", "Reaction": "reaction"}).to_csv(output_folder / "U02_Processed_SwissProt_Dataset_train.csv")
+valid_df.drop(columns=['Category']).rename(columns={"Sequence": "sequences", "Reaction": "reaction"}).to_csv(output_folder / "U02_Processed_SwissProt_Dataset_valid.csv")
+test_df .drop(columns=['Category']).rename(columns={"Sequence": "sequences", "Reaction": "reaction"}).to_csv(output_folder / "U02_Processed_SwissProt_Dataset_test.csv" )
 
 
 

@@ -151,27 +151,36 @@ with open('./Processed_Dataset/clustered.fasta.clstr', 'r') as file:
 #    P"Ybmmd"  .JMML.    .JMMmmmmMMM .JMML.   .JMML.         P"Ybmmd"  .JMMmmmmMMM   `"bmmdPVM  P"Ybmmd"                                               #
 #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$#
 # Identify SwissProt sequences clustered with UniRef50 sequences
-swissprot_similar = set()
+import copy
+swissprot_dissimilar   = set()
+swissprot_similar      = set()
+all_swissprot_clusters = []
 
 len_clusters = len(clusters) #37M
 print("Number of clusters: ", len_clusters)
 
-for idx, cluster in enumerate(clusters.values()):
+for idx, (clstr_k, clstr_v)  in enumerate(clusters.items()):
     
     if idx % 1000000 == 0:
+        print("\ncluster_k: ", clstr_k, "\ncluster_v: ", clstr_v[:5])
         print("Processing cluster ", int(idx / 1000000), "M out of ", "37M", ".")
 
-    if any(SwissProt_seq_tag in seq for seq in cluster) and any(UniRef50_seq_tag in seq for seq in cluster):
 
-        for seq in cluster:
+    if any(SwissProt_seq_tag in seq for seq in clstr_v) and any(UniRef50_seq_tag in seq for seq in clstr_v):
+    # If the cluster contains both SwissProt and UniRef50 sequences
+        pass
+    
+    elif all(SwissProt_seq_tag in seq for seq in clstr_v):
+    # If the cluster contains only SwissProt sequences
+        all_swissprot_clusters.append(clstr_v)
 
-            if SwissProt_seq_tag in seq:
-
-                swissprot_similar.add(seq)
+        for seq in clstr_v:
+            swissprot_dissimilar.add(seq)
 
 
 # SwissProt sequences not clustered with UniRef50 sequences
-swissprot_dissimilar = swissprot_sequences - swissprot_similar
+swissprot_similar = swissprot_sequences - swissprot_dissimilar
+
 
 
 # Reporting
@@ -182,8 +191,9 @@ print(f"SwissProt sequences with no UniRef50 similarity  : {len(swissprot_dissim
 
 
 # Save swissprot_similar and swissprot_dissimilar to a pickle file which contains a dictionary.
-split_dict = { "SP_seqs_similar_to_UR50"    : swissprot_similar    , 
-               "SP_seqs_dissimilar_to_UR50" : swissprot_dissimilar , }
+split_dict = { "SP_seqs_similar_to_UR50"    : swissprot_similar      , 
+               "SP_seqs_dissimilar_to_UR50" : swissprot_dissimilar   , 
+               "all_swissprot_clusters"     : all_swissprot_clusters , }
 
 pd.to_pickle(split_dict, output_file)
 
